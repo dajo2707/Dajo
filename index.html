@@ -1,998 +1,758 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="DAJO">
-<meta name="theme-color" content="#080808">
-<title>DAJO Protocol</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body { background: #080808; color: #F2F2F2; font-family: -apple-system, 'Inter', system-ui, sans-serif; max-width: 430px; margin: 0 auto; min-height: 100vh; overflow-x: hidden; }
-  button { font-family: inherit; }
-  input { font-family: inherit; }
-  ::-webkit-scrollbar { display: none; }
-  .screen { padding: 0 16px; padding-bottom: 100px; min-height: 100vh; }
-  .screen-header { padding: 52px 0 20px; }
-  .eyebrow { font-size: 11px; letter-spacing: 4px; color: #555; text-transform: uppercase; }
-  .title { font-size: 26px; font-weight: 900; letter-spacing: -1px; color: #F2F2F2; margin-top: 4px; }
-  .subtitle { font-size: 13px; color: #555; margin-top: 4px; }
-  .card { background: #161616; border-radius: 14px; padding: 16px; border: 1px solid #222; margin-bottom: 14px; }
-  .card-label { font-size: 10px; letter-spacing: 3px; color: #555; text-transform: uppercase; margin-bottom: 12px; }
-  .tag { font-size: 9px; letter-spacing: 2px; font-weight: 800; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; display: inline-block; }
-  .btn-primary { width: 100%; padding: 14px; border-radius: 10px; border: none; background: #C9A84C; color: #000; font-size: 14px; font-weight: 900; cursor: pointer; transition: opacity 0.15s; }
-  .btn-primary:active { opacity: 0.8; }
-  .btn-saved { background: #4CAF7D !important; }
-  .pill-row { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 14px; }
-  .pill { flex: 0 0 auto; padding: 10px 14px; border-radius: 10px; border: 1px solid #222; background: #161616; color: #555; cursor: pointer; font-size: 12px; font-weight: 800; white-space: nowrap; transition: all 0.15s; }
-  .pill.active { border-width: 1.5px; }
-  .exercise-item { background: #161616; border-radius: 12px; padding: 14px 16px; border: 1px solid #222; margin-bottom: 8px; transition: all 0.15s; }
-  .exercise-item.done { background: rgba(76,175,125,0.08); border-color: #4CAF7D; border-width: 1.5px; }
-  .exercise-item.active-ex { border-color: #C9A84C; border-width: 1.5px; background: rgba(201,168,76,0.06); }
-  .food-item { padding: 12px 14px; border-radius: 10px; border: 1px solid #222; background: #161616; margin-bottom: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.15s; }
-  .food-item.selected { border-width: 1.5px; }
-  .supp-item { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; cursor: pointer; }
-  .supp-item + .supp-item { border-top: 1px solid #222; }
-  .macro-bar-wrap { margin-bottom: 10px; }
-  .macro-bar-head { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; font-family: monospace; }
-  .macro-bar-track { background: #333; border-radius: 3px; height: 6px; }
-  .macro-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
-  .ring-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-  .ring-label { font-size: 10px; color: #555; text-align: center; letter-spacing: 1px; }
-  .ring-sub { font-size: 9px; color: #333; }
-  .input-field { width: 100%; background: #111; border: 1px solid #222; border-radius: 10px; padding: 12px 14px; color: #F2F2F2; font-size: 14px; outline: none; }
-  .input-field::placeholder { color: #444; }
-  .input-label { font-size: 11px; color: #555; margin-bottom: 6px; }
-  .nav-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background: #111; border-top: 1px solid #222; display: flex; padding: 10px 0 max(16px, env(safe-area-inset-bottom)); z-index: 100; }
-  .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; cursor: pointer; padding: 6px 0; }
-  .nav-icon { font-size: 20px; transition: opacity 0.15s; }
-  .nav-text { font-size: 10px; font-weight: 700; letter-spacing: 1px; }
-  .nav-dot { width: 18px; height: 2px; background: #C9A84C; border-radius: 1px; }
-  .week-strip { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 18px; }
-  .week-day { flex: 0 0 auto; width: 46px; text-align: center; padding: 10px 0; border-radius: 10px; border: 1px solid #222; background: #161616; cursor: pointer; transition: all 0.15s; }
-  .week-day.active { border: 1.5px solid #C9A84C; background: rgba(201,168,76,0.12); }
-  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-  .stat-card { background: #161616; border-radius: 12px; padding: 16px; border: 1px solid #222; }
-  .log-entry { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; }
-  .log-entry + .log-entry { border-top: 1px solid #222; }
-  .milestone-item { display: flex; gap: 14px; padding-bottom: 14px; margin-bottom: 14px; }
-  .milestone-item + .milestone-item { border-top: 1px solid #222; padding-top: 14px; margin-top: 0; }
-  .milestone-bar { width: 3px; border-radius: 2px; flex-shrink: 0; }
-  .macro-rings { display: flex; justify-content: space-around; margin-bottom: 4px; }
-  .selected-meal-item { display: flex; justify-content: space-between; padding: 8px 10px; background: #111; border-radius: 8px; margin-bottom: 6px; }
-  .block-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
-  .block-tab { flex: 1; padding: 8px 4px; border-radius: 8px; font-size: 11px; font-weight: 800; border: 1px solid #222; background: #161616; cursor: pointer; transition: all 0.15s; }
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-  .warmup-box { margin-top: 14px; padding: 12px; background: #111; border-radius: 10px; }
-  .cardio-box { background: #161616; border-radius: 12px; padding: 16px; border: 1px solid #222; }
-  .progress-bar-simple { background: #333; border-radius: 3px; height: 4px; margin-top: 10px; }
-  .progress-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
-  .flex-between { display: flex; justify-content: space-between; align-items: center; }
-  .flex-center { display: flex; align-items: center; }
-
-  /* TIMER OVERLAY */
-  .timer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .timer-circle { width: 200px; height: 200px; position: relative; margin-bottom: 24px; }
-  .timer-label { font-size: 13px; letter-spacing: 3px; color: #555; text-transform: uppercase; margin-bottom: 12px; }
-  .timer-seconds { font-size: 64px; font-weight: 900; color: #F2F2F2; font-family: monospace; }
-  .timer-ex-name { font-size: 15px; color: #C9A84C; font-weight: 700; margin-bottom: 32px; }
-  .timer-skip { padding: 14px 40px; border-radius: 12px; border: 1px solid #333; background: #161616; color: #F2F2F2; font-size: 14px; font-weight: 700; cursor: pointer; }
-
-  /* SESSION TIMER BAR */
-  .session-timer-card { background: #161616; border: 1px solid #222; border-radius: 14px; padding: 14px 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
-  .session-timer-display { font-family: monospace; font-size: 20px; font-weight: 900; color: #C9A84C; }
-
-  /* SET LOG MODAL */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 150; display: flex; align-items: flex-end; }
-  .modal-sheet { background: #161616; border-radius: 20px 20px 0 0; padding: 24px 20px 40px; width: 100%; }
-  .modal-title { font-size: 16px; font-weight: 900; color: #F2F2F2; margin-bottom: 4px; }
-  .modal-sub { font-size: 12px; color: #555; margin-bottom: 20px; }
-  .set-input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-  .set-input-wrap { display: flex; flex-direction: column; gap: 6px; }
-  .set-input { width: 100%; background: #111; border: 1px solid #333; border-radius: 10px; padding: 14px; color: #F2F2F2; font-size: 22px; font-weight: 900; text-align: center; outline: none; font-family: monospace; }
-  .set-input::placeholder { color: #333; font-size: 18px; }
-  .prev-hint { font-size: 11px; color: #C9A84C; text-align: center; margin-bottom: 16px; min-height: 16px; }
-  .prog-hint { font-size: 12px; color: #4CAF7D; background: rgba(76,175,125,0.1); border: 1px solid rgba(76,175,125,0.3); border-radius: 8px; padding: 10px 12px; margin-bottom: 16px; text-align: center; font-weight: 700; }
-
-  /* SET HISTORY */
-  .set-history { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
-  .set-badge { font-size: 11px; font-family: monospace; background: #111; border: 1px solid #2a2a2a; border-radius: 6px; padding: 4px 8px; color: #9ca3af; }
-  .set-badge.current { border-color: #C9A84C; color: #C9A84C; }
-
-  /* PROGRESSION BADGE */
-  .prog-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 800; color: #4CAF7D; background: rgba(76,175,125,0.12); border: 1px solid rgba(76,175,125,0.3); border-radius: 6px; padding: 3px 7px; margin-left: 6px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wochenplan</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background-color: #121212;
+            color: #f0f0f0;
+            padding: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        header {
+            margin-bottom: 20px;
+        }
+        .subtitle {
+            font-size: 0.85rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        /* Wochentage Navigation */
+        .days-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .day-btn {
+            background-color: #1e1e1e;
+            color: #888;
+            border: none;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .day-btn.active {
+            background-color: #f1c40f;
+            color: #121212;
+        }
+        /* Tages-Content Sektionen */
+        .day-section {
+            display: none;
+        }
+        .day-section.active {
+            display: block;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #333;
+            color: #ccc;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        .day-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        /* Warmup Box */
+        .warmup-box {
+            background-color: #1a1a1a;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid #2a2a2a;
+        }
+        .warmup-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #aaa;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+        .warmup-list {
+            list-style: none;
+            font-size: 0.95rem;
+            color: #ddd;
+        }
+        .warmup-list li {
+            margin-bottom: 4px;
+        }
+        /* Übungs-Karten */
+        .exercise-card {
+            background-color: #1c1c1e;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid #2c2c2e;
+        }
+        .exercise-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        .exercise-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        .exercise-meta {
+            text-align: right;
+        }
+        .sets-reps {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .pause-time {
+            font-size: 0.8rem;
+            color: #888;
+        }
+        .exercise-desc {
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-bottom: 12px;
+        }
+        .sets-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            overflow-x: auto;
+        }
+        .set-pill {
+            background-color: #2c2c2e;
+            border: 1px solid #3a3a3c;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 0.85rem;
+            color: #bbb;
+            white-space: nowrap;
+        }
+        .set-pill span {
+            color: #f1c40f;
+            font-weight: 600;
+        }
+        .btn-action {
+            width: 100%;
+            background-color: #2c2c2e;
+            color: #f0f0f0;
+            border: 1px solid #3a3a3c;
+            border-radius: 8px;
+            padding: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-action.primary {
+            background-color: #242426;
+            color: #34c759;
+            border-color: #2e4a32;
+        }
+        /* Cardio / Footer Block in der Karte */
+        .cardio-box {
+            background-color: #1a1a1a;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-top: 16px;
+            font-size: 0.9rem;
+            color: #ccc;
+            border: 1px solid #2a2a2a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .cardio-time {
+            font-weight: 600;
+            color: #fff;
+        }
+        /* Startseiten-Bereich für Supplemente */
+        .home-supplements {
+            background-color: #1c1c1e;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 24px;
+            border: 1px solid #2c2c2e;
+        }
+        .home-supplements h3 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+        .home-supplements p {
+            font-size: 0.85rem;
+            color: #888;
+        }
+    </style>
 </head>
 <body>
-<div id="app"></div>
-<div id="timer-container"></div>
-<div id="modal-container"></div>
 
-<script>
-// ─── STORAGE ─────────────────────────────────────────────────────────────────
-function loadStorage(key, def) {
-  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch { return def; }
-}
-function saveStorage(key, val) {
-  try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
-}
+    <header>
+        <div class="subtitle">Trainingsplan</div>
+        <h1>Wochenplan</h1>
+    </header>
 
-// ─── STATE ───────────────────────────────────────────────────────────────────
-const TARGETS = { kcal: 2500, p: 180, c: 250, f: 86 };
-const today = new Date().toDateString();
+    <div class="days-nav">
+        <button class="day-btn active" onclick="switchDay('mo')">Mo</button>
+        <button class="day-btn" onclick="switchDay('di')">Di</button>
+        <button class="day-btn" onclick="switchDay('mi')">Mi</button>
+        <button class="day-btn" onclick="switchDay('do')">Do</button>
+        <button class="day-btn" onclick="switchDay('fr')">Fr</button>
+        <button class="day-btn" onclick="switchDay('sa')">Sa</button>
+        <button class="day-btn" onclick="switchDay('so')">So</button>
+    </div>
 
-let suppsDayData = loadStorage('dajo_supps_day', { date: '', items: [] });
-if (suppsDayData.date !== today) { suppsDayData = { date: today, items: [] }; saveStorage('dajo_supps_day', suppsDayData); }
+    <div id="day-mo" class="day-section active">
+        <div class="badge">ATH</div>
+        <div class="day-title">Functional · Core · Kondition</div>
 
-let nutritionDayData = loadStorage('dajo_nutrition_day', { date: '', meals: {} });
-if (nutritionDayData.date !== today) { nutritionDayData = { date: today, meals: {} }; saveStorage('dajo_nutrition_day', nutritionDayData); }
-
-let weightLog = loadStorage('dajo_weight_log', {});
-let todaySets = loadStorage('dajo_today_sets', { date: '', sets: {} });
-if (todaySets.date !== today) { todaySets = { date: today, sets: {} }; saveStorage('dajo_today_sets', todaySets); }
-
-let state = {
-  tab: 'home',
-  trainingDay: getTodayIndex(),
-  suppsDone: suppsDayData,
-  nutrition: nutritionDayData,
-  activeMeal: 'm1',
-  activeBlock: 'protein',
-  logs: loadStorage('dajo_logs', []),
-  weightInput: '', kfaInput: '', noteInput: '', savedFlash: false,
-  // modal
-  modalOpen: false,
-  modalExIdx: null,
-  modalWeight: '',
-  modalReps: '',
-  // timer (rest)
-  timerActive: false,
-  timerTotal: 0,
-  timerRemaining: 0,
-  timerExName: '',
-  timerInterval: null,
-  // session timer (workout duration)
-  sessionActive: false,
-  sessionSeconds: 0,
-  sessionInterval: null,
-};
-
-function getTodayIndex() {
-  const d = new Date().getDay(); return d === 0 ? 6 : d - 1;
-}
-function setState(updates) { Object.assign(state, updates); render(); }
-
-// ─── DATA (MASTER PROTOCOL) ──────────────────────────────────────────────────
-const WEEK_PLAN = [
-  { day:'MO', label:'PUSH', focus:'Brust · Schultern · Trizeps', duration:'75–90 Min',
-    warmup:['5 Min Fahrradergometer','Arm Circles 2×15','Band Pull-Aparts 2×15'],
-    exercises:[
-      {name:'Schrägbank LH', sets:4, reps:'6–8', restSec:120, note:'Schwer & kontrolliert'},
-      {name:'KH Fliegende 30°', sets:3, reps:'10–12', restSec:90, note:'Volle Dehnung unten'},
-      {name:'Schulterdrücken KH sitzend', sets:4, reps:'8–10', restSec:90, note:'Kein Hohlkreuz'},
-      {name:'Seitheben Kabel', sets:3, reps:'12–15', restSec:60, note:'Konstante Spannung'},
-      {name:'Fronterheben KH alternierend', sets:3, reps:'10/Seite', restSec:60, note:'Langsam runter'},
-      {name:'Trizeps Pushdown Seil', sets:3, reps:'12–15', restSec:60, note:'Ellbogen fixiert'},
-      {name:'Skull Crushers LH', sets:3, reps:'10–12', restSec:90, note:'Langsam exzentrisch'},
-    ], cardio:'30 Min Fahrrad · Zone 2 (5+20+5 Min)'},
-  { day:'DI', label:'PULL', focus:'Rücken · Bizeps · hintere Schulter', duration:'85 Min',
-    warmup:['Band Pull-Aparts 2×20','Scapular Push-Ups 2×10','Klimmzüge leicht 2×5'],
-    exercises:[
-      {name:'Klimmzüge Eigengewicht', sets:4, reps:'Max (Ziel 8–12)', restSec:120, note:'Volle ROM, kein Schwung'},
-      {name:'LH Rudern vorgebeugt', sets:4, reps:'6–8', restSec:120, note:'Brustbein zur Stange'},
-      {name:'Seilzug Rudern sitzend', sets:3, reps:'10–12', restSec:90, note:'Schulterblätter zusammen'},
-      {name:'Face Pulls Kabel', sets:3, reps:'15–20', restSec:60, note:'Hintere Schulter'},
-      {name:'KH Curl', sets:3, reps:'10–12', restSec:60, note:'Supination am Ende'},
-      {name:'Hammer Curl', sets:3, reps:'10/Seite', restSec:60, note:'Brachialis'},
-      {name:'Reverse Curl LH', sets:2, reps:'12', restSec:60, note:'Unterarme'},
-    ], cardio:'10 Min Rudern locker + 10× (30 Sek Sprint / 30 Sek Pause)'},
-  { day:'MI', label:'LEGS', focus:'Beine · Gesäß (Leiste schonen)', duration:'85 Min',
-    warmup:['Fahrrad 5 Min','Hip Circles','Leg Swings','BW Squat 2×15'],
-    exercises:[
-      {name:'Beinpresse', sets:4, reps:'8–10', restSec:120, note:'Tief, schulterbreit'},
-      {name:'Rumänisches KH Kreuzheben', sets:4, reps:'8–10', restSec:120, note:'Rücken gerade'},
-      {name:'Beinstrecker', sets:3, reps:'12–15', restSec:60, note:'Langsam exzentrisch'},
-      {name:'Beinbeuger liegend', sets:3, reps:'12–15', restSec:60, note:'Kontrolliert'},
-      {name:'Wadenheben stehend', sets:4, reps:'15–20', restSec:60, note:'Volle ROM unten'},
-      {name:'Hip Thrust (KH/Maschine)', sets:3, reps:'12', restSec:90, note:'Glutes fokus'},
-    ], cardio:'20 Min lockerer Spaziergang (kein Laufen — Leiste)'},
-  { day:'DO', label:'ATH', focus:'Functional · Core · Kondition', duration:'75 Min',
-    warmup:['Jumping Jacks','High Knees','Arm Circles','Squat Jumps'],
-    exercises:[
-      {name:'Circuit: Pull-Ups', sets:3, reps:'10', restSec:90, note:'3 Runden Circuit'},
-      {name:'Circuit: Dips', sets:3, reps:'15', restSec:0, note:'Im Circuit'},
-      {name:'Circuit: Box Jumps', sets:3, reps:'10', restSec:0, note:'Explosiv'},
-      {name:'Circuit: Push-Up Variationen', sets:3, reps:'10 jede', restSec:0, note:'Archer/Wide/Close'},
-      {name:'Hängendes Beinheben', sets:4, reps:'12–15', restSec:60, note:'Core-Block'},
-      {name:'Ab Wheel Rollout', sets:3, reps:'8–10', restSec:60, note:'Core'},
-      {name:'Dragon Flag', sets:3, reps:'Max', restSec:90, note:'Progressiv'},
-      {name:'Side Plank', sets:3, reps:'45 Sek/Seite', restSec:45, note:'Stabil halten'},
-    ], cardio:'20 Min Fahrrad Zone 2 + 5 Min Stretching'},
-  { day:'FR', label:'PUSH+', focus:'Schultern-Fokus · Arme', duration:'80 Min',
-    warmup:['Fahrrad 5 Min','Schulterrotation','Band Pull-Aparts 2×20'],
-    exercises:[
-      {name:'Military Press LH stehend', sets:4, reps:'5–6', restSec:150, note:'Schwer'},
-      {name:'KH Seitheben', sets:5, reps:'12–15', restSec:60, note:'Hauptvolumen Schultern'},
-      {name:'Kabel Seitheben einseitig', sets:3, reps:'15', restSec:45, note:'Burn-Set'},
-      {name:'Reverse Pec Deck', sets:4, reps:'12–15', restSec:60, note:'Hintere Schulter'},
-      {name:'Dips gewichtet', sets:3, reps:'8–10', restSec:120, note:'+Rucksack'},
-      {name:'Close-Grip Bankdrücken', sets:3, reps:'10–12', restSec:90, note:'Trizeps'},
-      {name:'EZ-Bar Curl', sets:3, reps:'10–12', restSec:60, note:'Bizeps'},
-      {name:'Konzentrations-Curl', sets:2, reps:'12/Seite', restSec:45, note:'Peak'},
-    ], cardio:'30 Min Fahrrad Zone 2'},
-  { day:'SA', label:'PULL+', focus:'Rücken-Breite · V-Taper', duration:'85 Min',
-    warmup:['Scapular Push-Ups 2×10','Band Pull-Aparts 2×20','Arm Circles'],
-    exercises:[
-      {name:'Klimmzüge weiter Griff', sets:4, reps:'Max', restSec:120, note:'Breite'},
-      {name:'Latzug Untergriff', sets:4, reps:'8–10', restSec:120, note:'Lat stretch oben'},
-      {name:'Einarmiges KH Rudern', sets:4, reps:'10/Seite', restSec:90, note:'Schwer'},
-      {name:'T-Bar Rudern', sets:3, reps:'8–10', restSec:120, note:'Dicke'},
-      {name:'Straight-Arm Pulldown', sets:3, reps:'12–15', restSec:60, note:'Lat isoliert'},
-      {name:'Face Pulls Kabel', sets:4, reps:'20', restSec:45, note:'Schultergesundheit'},
-    ], cardio:'5× (1 Min Sprint / 2 Min locker) + 10 Min ausfahren'},
-  { day:'SO', label:'REST', focus:'Active Recovery · Mobilität', duration:'—',
-    warmup:[],
-    exercises:[
-      {name:'Spaziergang 30–45 Min', sets:1, reps:'—', restSec:0, note:'Kein Laufen (Leiste)'},
-      {name:'Hüftbeuger Stretch', sets:3, reps:'60 Sek/Seite', restSec:0, note:'Mobility'},
-      {name:'Hamstring Stretch', sets:3, reps:'60 Sek/Seite', restSec:0, note:'Mobility'},
-      {name:'Lat Stretch', sets:3, reps:'45 Sek/Seite', restSec:0, note:'Mobility'},
-      {name:'Schulter Stretch', sets:3, reps:'45 Sek/Seite', restSec:0, note:'Mobility'},
-    ], cardio:'Optional: Sauna'},
-];
-
-const SUPPS = [
-  {name:'Kreatin Monohydrat', dose:'5g', time:'Morgens'},
-  {name:'Vitamin D3 5.000 IU', dose:'1 Kapsel', time:'Mit Mahlzeit 1'},
-  {name:'K2 MK-7 200mcg', dose:'1 Kapsel', time:'Mit Mahlzeit 1'},
-  {name:'Zink 15mg', dose:'1 Kapsel', time:'Abends nüchtern'},
-  {name:'Magnesium Glycinat', dose:'400mg', time:'30 Min vor Schlaf'},
-  {name:'Elektrolyte', dose:'1 Portion', time:'Während Training'},
-  {name:'Whey Protein', dose:'30–40g', time:'Post-Workout'},
-];
-
-const MEALS = [
-  {id:'m1', label:'Mahlzeit 1', time:'07:30', note:'Pre-Workout'},
-  {id:'m2', label:'Mahlzeit 2', time:'11:00', note:'Post-Workout'},
-  {id:'m3', label:'Snack', time:'14:00', note:'Leicht'},
-  {id:'m4', label:'Mahlzeit 3', time:'18:30', note:'Abendessen'},
-  {id:'m5', label:'Abend-Snack', time:'21:00', note:'Optional'},
-];
-
-const FOOD_BLOCKS = {
-  protein: { label:'PROTEIN', accent:'#4A90D9', items:[
-    {name:'Hähnchenbrustfilet', amount:'200g', kcal:220, p:46, c:0, f:3},
-    {name:'Thunfisch (Dose)', amount:'200g', kcal:184, p:44, c:0, f:2},
-    {name:'Lachs', amount:'180g', kcal:330, p:40, c:0, f:18},
-    {name:'Rinderhack 5%', amount:'200g', kcal:280, p:44, c:0, f:10},
-    {name:'Putenbrust', amount:'200g', kcal:210, p:46, c:0, f:2},
-    {name:'Eier (4 Stück)', amount:'4 Stück', kcal:280, p:28, c:2, f:18},
-    {name:'Garnelen', amount:'250g', kcal:200, p:46, c:2, f:2},
-    {name:'Magerquark', amount:'300g', kcal:210, p:36, c:12, f:2},
-    {name:'Skyr natur', amount:'300g', kcal:210, p:36, c:15, f:1},
-    {name:'Kabeljau / Tilapia', amount:'250g', kcal:210, p:46, c:0, f:2},
-    {name:'Whey Protein', amount:'2 Messlöffel', kcal:240, p:48, c:6, f:3},
-    {name:'Hüttenkäse', amount:'300g', kcal:240, p:36, c:9, f:6},
-  ]},
-  carbs: { label:'CARBS', accent:'#C9A84C', items:[
-    {name:'Weißer Reis', amount:'80g trocken', kcal:285, p:6, c:64, f:1},
-    {name:'Vollkornreis', amount:'80g trocken', kcal:275, p:7, c:58, f:2},
-    {name:'Haferflocken', amount:'80g trocken', kcal:300, p:10, c:54, f:6},
-    {name:'Süßkartoffel', amount:'300g gekocht', kcal:258, p:5, c:60, f:0},
-    {name:'Kartoffeln', amount:'350g gekocht', kcal:280, p:7, c:63, f:0},
-    {name:'Vollkornnudeln', amount:'80g trocken', kcal:275, p:10, c:54, f:2},
-    {name:'Quinoa', amount:'80g trocken', kcal:295, p:11, c:52, f:5},
-    {name:'Banane', amount:'2 mittelgroße', kcal:210, p:3, c:54, f:1},
-    {name:'Vollkornbrot', amount:'3 Scheiben', kcal:270, p:9, c:48, f:4},
-    {name:'Bulgur', amount:'80g trocken', kcal:270, p:9, c:56, f:1},
-    {name:'Linsen', amount:'250g gekocht', kcal:290, p:18, c:48, f:1},
-    {name:'Kichererbsen', amount:'250g gekocht', kcal:310, p:17, c:50, f:5},
-  ]},
-  fat: { label:'FETT', accent:'#4CAF7D', items:[
-    {name:'Olivenöl', amount:'1.5 EL', kcal:160, p:0, c:0, f:18},
-    {name:'Avocado', amount:'½ groß', kcal:130, p:2, c:2, f:12},
-    {name:'Mandeln', amount:'30g', kcal:175, p:6, c:3, f:15},
-    {name:'Walnüsse', amount:'25g', kcal:165, p:4, c:2, f:16},
-    {name:'Erdnussbutter natur', amount:'1.5 EL', kcal:150, p:6, c:4, f:13},
-    {name:'Cashews', amount:'30g', kcal:165, p:5, c:9, f:13},
-    {name:'Feta-Käse', amount:'60g', kcal:155, p:8, c:1, f:13},
-    {name:'Eigelb extra', amount:'3 Stück', kcal:165, p:8, c:1, f:14},
-  ]},
-  veg: { label:'GEMÜSE', accent:'#9B8EFF', items:[
-    {name:'Brokkoli', amount:'200g', kcal:68, p:6, c:7, f:1},
-    {name:'Spinat', amount:'200g', kcal:46, p:6, c:3, f:1},
-    {name:'Zucchini', amount:'200g', kcal:34, p:3, c:4, f:0},
-    {name:'Paprika', amount:'200g', kcal:52, p:2, c:10, f:0},
-    {name:'Gurke', amount:'200g', kcal:28, p:1, c:5, f:0},
-    {name:'Tomaten', amount:'200g', kcal:36, p:2, c:7, f:0},
-    {name:'Champignons', amount:'200g', kcal:44, p:6, c:4, f:1},
-    {name:'Blumenkohl', amount:'200g', kcal:50, p:4, c:8, f:0},
-    {name:'Grüne Bohnen', amount:'200g', kcal:62, p:4, c:10, f:0},
-    {name:'Feldsalat / Rucola', amount:'100g', kcal:25, p:3, c:2, f:0},
-  ]},
-};
-
-const MILESTONES = [
-  {label:'Monat 1', target:'~15% KFA', desc:'Straffere Mitte, Schultern voller'},
-  {label:'Monat 3', target:'~13% KFA', desc:'Abs beginnen sich abzuzeichnen'},
-  {label:'Monat 6', target:'~12% KFA', desc:'Klarer V-Taper, breite Schultern'},
-  {label:'Jahr 1', target:'~10–11% KFA', desc:'Sakraya-Niveau zu 70–80%'},
-  {label:'Jahr 2–3', target:'~10% KFA', desc:'Volle Transformation'},
-];
-
-// ─── WORKOUT / SESSION TIMER LOGIC ───────────────────────────────────────────
-function startSessionTimer() {
-  if (state.sessionInterval) clearInterval(state.sessionInterval);
-  state.sessionActive = true;
-  state.sessionSeconds = 0;
-  state.sessionInterval = setInterval(() => {
-    state.sessionSeconds++;
-    render();
-  }, 1000);
-  render();
-}
-
-function stopSessionTimer() {
-  if (state.sessionInterval) clearInterval(state.sessionInterval);
-  state.sessionActive = false;
-  const mins = Math.floor(state.sessionSeconds / 60);
-  const plan = WEEK_PLAN[state.trainingDay];
-  
-  // Log entry hinzufügen
-  const logEntry = {
-    date: today,
-    text: `Training: ${plan.label} (${plan.focus}) – Dauer: ${mins} Min`
-  };
-  state.logs.unshift(logEntry);
-  saveStorage('dajo_logs', state.logs);
-  state.sessionSeconds = 0;
-  render();
-}
-
-function formatSessionTime(sec) {
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-}
-
-// ─── WEIGHT / PROGRESSION LOGIC ──────────────────────────────────────────────
-function getExKey(dayIdx, exIdx) { return `${dayIdx}_${exIdx}`; }
-
-function getLastSession(dayIdx, exIdx) {
-  const key = getExKey(dayIdx, exIdx);
-  const history = weightLog[key];
-  if (!history || history.length === 0) return null;
-  return history[history.length - 1];
-}
-
-function getTodaySessionSets(dayIdx, exIdx) {
-  const key = getExKey(dayIdx, exIdx);
-  return (todaySets.sets[key] || []);
-}
-
-function shouldIncrease(dayIdx, exIdx, ex) {
-  const last = getLastSession(dayIdx, exIdx);
-  if (!last || !last.sets || last.sets.length === 0) return false;
-  const repsStr = ex.reps;
-  const match = repsStr.match(/(\d+)/g);
-  if (!match) return false;
-  const targetReps = parseInt(match[match.length - 1]);
-  const allHitTarget = last.sets.every(s => parseInt(s.r) >= targetReps);
-  const enoughSets = last.sets.length >= ex.sets;
-  return allHitTarget && enoughSets;
-}
-
-function logSet(dayIdx, exIdx, weight, reps) {
-  const key = getExKey(dayIdx, exIdx);
-  const sets = todaySets.sets[key] || [];
-  sets.push({ w: weight, r: reps });
-  todaySets.sets[key] = sets;
-  saveStorage('dajo_today_sets', todaySets);
-}
-
-function saveSessionToHistory(dayIdx, exIdx) {
-  const key = getExKey(dayIdx, exIdx);
-  const sets = todaySets.sets[key];
-  if (!sets || sets.length === 0) return;
-  const history = weightLog[key] || [];
-  history.push({ date: today, sets });
-  weightLog[key] = history;
-  saveStorage('dajo_weight_log', weightLog);
-}
-
-// ─── TIMER (REST) ────────────────────────────────────────────────────────────
-function startTimer(seconds, exName) {
-  if (state.timerInterval) clearInterval(state.timerInterval);
-  if (seconds <= 0) return;
-  state.timerActive = true;
-  state.timerTotal = seconds;
-  state.timerRemaining = seconds;
-  state.timerExName = exName;
-  renderTimer();
-  state.timerInterval = setInterval(() => {
-    state.timerRemaining--;
-    if (state.timerRemaining <= 0) {
-      clearInterval(state.timerInterval);
-      state.timerActive = false;
-      try { const a = new AudioContext(); const o = a.createOscillator(); const g = a.createGain(); o.connect(g); g.connect(a.destination); o.frequency.value = 880; g.gain.setValueAtTime(0.3, a.currentTime); g.gain.exponentialRampToValueAtTime(0.001, a.currentTime + 0.8); o.start(); o.stop(a.currentTime + 0.8); } catch(e){}
-      renderTimer();
-      render();
-    } else {
-      renderTimer();
-    }
-  }, 1000);
-  render();
-}
-
-function skipTimer() {
-  if (state.timerInterval) clearInterval(state.timerInterval);
-  state.timerActive = false;
-  renderTimer();
-  render();
-}
-
-function renderTimer() {
-  const c = document.getElementById('timer-container');
-  if (!c) return;
-  if (!state.timerActive) { c.innerHTML = ''; return; }
-  const r = state.timerRemaining;
-  const total = state.timerTotal;
-  const pct = r / total;
-  const size = 200; const stroke = 8; const radius = (size - stroke * 2) / 2;
-  const circ = 2 * Math.PI * radius;
-  const offset = circ * (1 - pct);
-  const color = r <= 10 ? '#E05252' : r <= 30 ? '#C9A84C' : '#4CAF7D';
-
-  c.innerHTML = `
-    <div class="timer-overlay" onclick="">
-      <div class="timer-label">PAUSE</div>
-      <div class="timer-ex-name">${state.timerExName}</div>
-      <div class="timer-circle">
-        <svg width="${size}" height="${size}" style="position:absolute;top:0;left:0">
-          <circle cx="${size/2}" cy="${size/2}" r="${radius}" fill="none" stroke="#222" stroke-width="${stroke}"/>
-          <circle cx="${size/2}" cy="${size/2}" r="${radius}" fill="none" stroke="${color}" stroke-width="${stroke}"
-            stroke-dasharray="${circ}" stroke-dashoffset="${offset}" stroke-linecap="round"
-            transform="rotate(-90 ${size/2} ${size/2})" style="transition:stroke-dashoffset 0.9s linear,stroke 0.3s"/>
-        </svg>
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
-          <div class="timer-seconds" style="color:${color}">${r}</div>
+        <div class="warmup-box">
+            <div class="warmup-title">WARM-UP · 10 MIN</div>
+            <ul class="warmup-list">
+                <li>· Jumping Jacks</li>
+                <li>· High Knees</li>
+                <li>· Arm Circles</li>
+                <li>· Squat Jumps</li>
+            </ul>
         </div>
-      </div>
-      <button class="timer-skip" onclick="skipTimer()">Überspringen</button>
-    </div>`;
-}
 
-// ─── MODAL ───────────────────────────────────────────────────────────────────
-function openModal(exIdx) {
-  state.modalOpen = true;
-  state.modalExIdx = exIdx;
-  state.modalWeight = '';
-  state.modalReps = '';
-  renderModal();
-}
-
-function closeModal() {
-  state.modalOpen = false;
-  renderModal();
-}
-
-function submitSet() {
-  const w = state.modalWeight;
-  const r = state.modalReps;
-  if (!w || !r) return;
-  const dayIdx = state.trainingDay;
-  const exIdx = state.modalExIdx;
-  const ex = WEEK_PLAN[dayIdx].exercises[exIdx];
-  logSet(dayIdx, exIdx, w, r);
-  const currentSets = getTodaySessionSets(dayIdx, exIdx);
-  if (currentSets.length >= ex.sets) {
-    saveSessionToHistory(dayIdx, exIdx);
-  }
-  closeModal();
-  startTimer(ex.restSec, ex.name);
-}
-
-function renderModal() {
-  const c = document.getElementById('modal-container');
-  if (!c) return;
-  if (!state.modalOpen) { c.innerHTML = ''; return; }
-  const dayIdx = state.trainingDay;
-  const exIdx = state.modalExIdx;
-  const ex = WEEK_PLAN[dayIdx].exercises[exIdx];
-  const last = getLastSession(dayIdx, exIdx);
-  const shouldInc = shouldIncrease(dayIdx, exIdx, ex);
-  const currentSets = getTodaySessionSets(dayIdx, exIdx);
-  const setNum = currentSets.length + 1;
-
-  let prevHint = '';
-  if (last && last.sets && last.sets.length > 0) {
-    const avg = last.sets.map(s => `${s.w}kg×${s.r}`).join(' · ');
-    prevHint = `Letztes Mal: ${avg}`;
-  }
-
-  const progHtml = shouldInc ? `<div class="prog-hint">🔥 Erhöhe das Gewicht! Du hast letztes Mal alle Wiederholungen geschafft.</div>` : '';
-  const setsHtml = currentSets.map((s, i) =>
-    `<span class="set-badge current">Satz ${i+1}: ${s.w}kg×${s.r}</span>`
-  ).join('');
-
-  c.innerHTML = `
-    <div class="modal-overlay" onclick="closeModal()">
-      <div class="modal-sheet" onclick="event.stopPropagation()">
-        <div class="modal-title">${ex.name}</div>
-        <div class="modal-sub">Satz ${setNum} von ${ex.sets} · Ziel: ${ex.reps} Wdh</div>
-        ${progHtml}
-        <div class="set-input-row">
-          <div class="set-input-wrap">
-            <div class="input-label" style="text-align:center">GEWICHT (kg)</div>
-            <input class="set-input" type="number" inputmode="decimal" placeholder="0" id="modal-weight-input"
-              value="${state.modalWeight}" oninput="state.modalWeight=this.value">
-          </div>
-          <div class="set-input-wrap">
-            <div class="input-label" style="text-align:center">WIEDERHOLUNGEN</div>
-            <input class="set-input" type="number" inputmode="numeric" placeholder="0" id="modal-reps-input"
-              value="${state.modalReps}" oninput="state.modalReps=this.value">
-          </div>
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">Circuit: Pull-Ups</div>
+                    <div class="exercise-desc">3 Runden Circuit<br>Letztes Mal: 83.3kg</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">3x10</div>
+                    <div class="pause-time">Pause: 90s</div>
+                </div>
+            </div>
+            <div class="sets-row">
+                <div class="set-pill">S1: <span>83.3kg×10</span></div>
+                <div class="set-pill">S2: <span>83.3kg×8</span></div>
+                <div class="set-pill">S3: <span>83.3kg×8</span></div>
+            </div>
+            <div class="btn-action primary">Abgeschlossen</div>
         </div>
-        ${prevHint ? `<div class="prev-hint">${prevHint}</div>` : '<div class="prev-hint"></div>'}
-        ${currentSets.length > 0 ? `<div class="set-history">${setsHtml}</div><div style="height:12px"></div>` : ''}
-        <button class="btn-primary" onclick="submitSet()">Satz bestätigen → Timer startet</button>
-        <button onclick="closeModal()" style="width:100%;margin-top:10px;padding:12px;border-radius:10px;border:1px solid #333;background:none;color:#555;font-size:14px;cursor:pointer">Abbrechen</button>
-      </div>
-    </div>`;
 
-  setTimeout(() => { const i = document.getElementById('modal-weight-input'); if(i) i.focus(); }, 100);
-}
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">Circuit: Dips</div>
+                    <div class="exercise-desc">3 Runden Circuit<br>Letztes Mal: 83.3kg</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">3x15</div>
+                    <div class="pause-time">Pause: 0s</div>
+                </div>
+            </div>
+            <div class="sets-row">
+                <div class="set-pill">S1: <span>83.3kg×10</span></div>
+                <div class="set-pill">S2: <span>83.3kg×10</span></div>
+                <div class="set-pill">S3: <span>83.3kg×10</span></div>
+            </div>
+            <div class="btn-action primary">Abgeschlossen</div>
+        </div>
 
-// ─── HELPERS ─────────────────────────────────────────────────────────────────
-function getTotals() {
-  const meals = state.nutrition.meals || {};
-  return Object.values(meals).reduce((t, slot) => {
-    Object.values(slot).forEach(item => { if (item) { t.kcal+=item.kcal; t.p+=item.p; t.c+=item.c; t.f+=item.f; } });
-    return t;
-  }, {kcal:0,p:0,c:0,f:0});
-}
-function getMealKcal(mId) {
-  const slot = (state.nutrition.meals||{})[mId]||{};
-  return Object.values(slot).reduce((s,item)=>s+(item?item.kcal:0),0);
-}
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">Circuit: Box Jumps</div>
+                    <div class="exercise-desc">Explosiv<br>Letztes Mal: 83.3kg</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">3x10</div>
+                    <div class="pause-time">Pause: 0s</div>
+                </div>
+            </div>
+            <div class="sets-row">
+                <div class="set-pill">S1: <span>83.3kg×10</span></div>
+                <div class="set-pill">S2: <span>83.3kg×12</span></div>
+                <div class="set-pill">S3: <span>83.3kg×12</span></div>
+            </div>
+            <button class="btn-action">Erhöhen</button>
+        </div>
 
-function h(tag, attrs, ...children) {
-  const el = document.createElement(tag);
-  if (attrs) Object.entries(attrs).forEach(([k,v])=>{
-    if(k==='class') el.className=v;
-    else if(k==='style') el.style.cssText=v;
-    else if(k.startsWith('on')) el.addEventListener(k.slice(2).toLowerCase(),v);
-    else el.setAttribute(k,v);
-  });
-  children.flat(Infinity).forEach(child=>{
-    if(child==null) return;
-    if(typeof child==='string'||typeof child==='number') el.appendChild(document.createTextNode(child));
-    else el.appendChild(child);
-  });
-  return el;
-}
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">Circuit: Push-Up Variationen</div>
+                    <div class="exercise-desc">Archer/Wide/Close<br>Letztes Mal: 83.3kg</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">3x10 jede</div>
+                    <div class="pause-time">Pause: 0s</div>
+                </div>
+            </div>
+            <div class="sets-row">
+                <div class="set-pill">S1: <span>83.3kg×10</span></div>
+                <div class="set-pill">S2: <span>83.3kg×10</span></div>
+                <div class="set-pill">S3: <span>83.3kg×10</span></div>
+            </div>
+            <button class="btn-action">Erhöhen</button>
+        </div>
 
-function Ring(value, max, color, size, label, sub) {
-  const r=(size-12)/2, circ=2*Math.PI*r, pct=Math.min(value/max,1), over=value>max, offset=circ*(1-pct);
-  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
-  svg.setAttribute('width',size); svg.setAttribute('height',size);
-  const bg=document.createElementNS('http://www.w3.org/2000/svg','circle');
-  bg.setAttribute('cx',size/2);bg.setAttribute('cy',size/2);bg.setAttribute('r',r);
-  bg.setAttribute('fill','none');bg.setAttribute('stroke','#333');bg.setAttribute('stroke-width','6');
-  const fg=document.createElementNS('http://www.w3.org/2000/svg','circle');
-  fg.setAttribute('cx',size/2);fg.setAttribute('cy',size/2);fg.setAttribute('r',r);
-  fg.setAttribute('fill','none');fg.setAttribute('stroke',over?'#E05252':color);fg.setAttribute('stroke-width','6');
-  fg.setAttribute('stroke-dasharray',circ);fg.setAttribute('stroke-dashoffset',offset);
-  fg.setAttribute('stroke-linecap','round');fg.setAttribute('transform',`rotate(-90 ${size/2} ${size/2})`);
-  const txt=document.createElementNS('http://www.w3.org/2000/svg','text');
-  txt.setAttribute('x','50%');txt.setAttribute('y','50%');txt.setAttribute('text-anchor','middle');
-  txt.setAttribute('dominant-baseline','central');txt.setAttribute('fill',over?'#E05252':'#F2F2F2');
-  txt.setAttribute('font-size','11');txt.setAttribute('font-weight','800');txt.setAttribute('font-family','monospace');
-  txt.textContent=Math.round(value);
-  svg.appendChild(bg);svg.appendChild(fg);svg.appendChild(txt);
-  return h('div',{class:'ring-wrap'},svg,h('div',{class:'ring-label'},label),sub?h('div',{class:'ring-sub'},sub):null);
-}
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">Hängendes Beinheben</div>
+                    <div class="exercise-desc">Core-Block<br>Letztes Mal: 83.3kg</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">4x12–15</div>
+                    <div class="pause-time">Pause: 60s</div>
+                </div>
+            </div>
+            <div class="sets-row">
+                <div class="set-pill">S1: <span>83.3kg×10</span></div>
+                <div class="set-pill">S2: <span>83.3kg×8</span></div>
+                <div class="set-pill">S3: <span>83.3kg×9</span></div>
+                <div class="set-pill">S4: <span>83.3kg×8</span></div>
+            </div>
+            <div class="btn-action primary">Abgeschlossen</div>
+        </div>
 
-// ─── SCREENS ─────────────────────────────────────────────────────────────────
-function renderHome() {
-  const todayIdx=getTodayIndex(), plan=WEEK_PLAN[todayIdx];
-  const days=['Mo','Di','Mi','Do','Fr','Sa','So'];
-  const dayNames=['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
-  const totals=getTotals();
-  const c = h('div',{class:'screen'});
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">Ab Wheel Rollout</div>
+                    <div class="exercise-desc">Core<br>Letztes Mal: 83.3kg</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">3x8–10</div>
+                    <div class="pause-time">Pause: 60s</div>
+                </div>
+            </div>
+            <div class="sets-row">
+                <div class="set-pill">S1: <span>83.3kg×8</span></div>
+                <div class="set-pill">S2: <span>83.3kg×8</span></div>
+                <div class="set-pill">S3: <span>83.3kg×7</span></div>
+            </div>
+            <div class="btn-action primary">Abgeschlossen</div>
+        </div>
 
-  c.appendChild(h('div',{class:'screen-header'},
-    h('div',{class:'eyebrow'},'DAJO PROTOCOL'),
-    h('div',{class:'title'},dayNames[todayIdx]),
-    h('div',{class:'subtitle'},`${today} · Ziel: 10% KFA (Emilio Sakraya)`))
-  );
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">Dragon Flag</div>
+                    <div class="exercise-desc">Progressiv<br>Letztes Mal: 83.3kg</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">3xMax</div>
+                    <div class="pause-time">Pause: 90s</div>
+                </div>
+            </div>
+            <div class="sets-row">
+                <div class="set-pill">S1: <span>83.3kg×0</span></div>
+                <div class="set-pill">S2: <span>83.3kg×0</span></div>
+                <div class="set-pill">S3: <span>83.3kg×0</span></div>
+            </div>
+            <div class="btn-action primary">Abgeschlossen</div>
+        </div>
 
-  // Quick Stats / Rings
-  const ringsCard = h('div',{class:'card'});
-  ringsCard.appendChild(h('div',{class:'card-label'},'TÄGLICHER MAKRO-STATUS'));
-  const ringsWrap = h('div',{class:'macro-rings'},
-    Ring(totals.kcal,TARGETS.kcal,'#C9A84C',64,'KCAL'),
-    Ring(totals.p,TARGETS.p,'#4A90D9',64,'PROTEIN'),
-    Ring(totals.c,TARGETS.c,'#C9A84C',64,'CARBS'),
-    Ring(totals.f,TARGETS.f,'#4CAF7D',64,'FETT')
-  );
-  ringsCard.appendChild(ringsWrap);
-  c.appendChild(ringsCard);
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">Side Plank</div>
+                    <div class="exercise-desc">Stabil halten<br>Letztes Mal: 83.3kg</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">3x45 Sek/Seite</div>
+                    <div class="pause-time">Pause: 45s</div>
+                </div>
+            </div>
+            <div class="sets-row">
+                <div class="set-pill">S1: <span>83.3kg×0</span></div>
+                <div class="set-pill">S2: <span>83.3kg×0</span></div>
+                <div class="set-pill">S3: <span>83.3kg×0</span></div>
+            </div>
+            <div class="btn-action primary">Abgeschlossen</div>
+        </div>
 
-  // Today Workout Card
-  const wCard = h('div',{class:'card',style:'cursor:pointer;'},
-    h('div',{class:'flex-between',style:'margin-bottom:8px;'},
-      h('div',{class:'card-label',style:'margin:0;'},'HEUTIGES TRAINING'),
-      h('span',{class:'tag',style:'background:rgba(201,168,76,0.12);color:#C9A84C;border:1px solid rgba(201,168,76,0.3);'},plan.day)
-    ),
-    h('div',{style:'font-size:18px;font-weight:900;color:#F2F2F2;margin-bottom:2px;'},plan.label + ' — ' + plan.focus),
-    h('div',{style:'font-size:12px;color:#555;'},`Dauer: ${plan.duration} · Tippe zum Starten`)
-  );
-  wCard.onclick = () => setState({ tab:'training', trainingDay: todayIdx });
-  c.appendChild(wCard);
+        <div class="cardio-box">
+            <span>CARDIO · MITTAGS 12:30</span>
+            <span class="cardio-time">20 Min Fahrrad Zone 2 + 5 Min Stretching</span>
+        </div>
+    </div>
 
-  return c;
-}
+    <div id="day-di" class="day-section">
+        <div class="badge">REST / OFF</div>
+        <div class="day-title">Regeneration</div>
+        <p style="color: #888; font-size: 0.9rem;">Kein Training eingetragen.</p>
+    </div>
 
-function renderTraining() {
-  const plan = WEEK_PLAN[state.trainingDay];
-  const days=['Mo','Di','Mi','Do','Fr','Sa','So'];
-  const c = h('div',{class:'screen'});
+    <div id="day-mi" class="day-section">
+        <div class="badge">REST / OFF</div>
+        <div class="day-title">Regeneration</div>
+        <p style="color: #888; font-size: 0.9rem;">Kein Training eingetragen.</p>
+    </div>
 
-  c.appendChild(h('div',{class:'screen-header'},
-    h('div',{class:'eyebrow'},'MASTER PROTOKOLL'),
-    h('div',{class:'title'},'Krafttraining'),
-    h('div',{class:'subtitle'},'Sätze loggen & progressive Überlastung')
-  ));
+    <div id="day-do" class="day-section">
+        <div class="badge">PUSH+</div>
+        <div class="day-title">Schultern-Fokus · Arme</div>
 
-  // Session Timer Card
-  const timerCard = h('div',{class:'session-timer-card'});
-  const timerLeft = h('div');
-  timerLeft.appendChild(h('div',{style:'font-size:10px;letter-spacing:2px;color:#555;text-transform:uppercase;'},'Trainingstimer'));
-  timerLeft.appendChild(h('div',{class:'session-timer-display'},formatSessionTime(state.sessionSeconds)));
-  timerCard.appendChild(timerLeft);
+        <div class="warmup-box">
+            <div class="warmup-title">WARM-UP · 10 MIN</div>
+            <ul class="warmup-list">
+                <li>· Fahrrad 5 Min</li>
+                <li>· Schulterrotation</li>
+                <li>· Band Pull-Aparts 2x20</li>
+            </ul>
+        </div>
 
-  if (!state.sessionActive) {
-    const startBtn = h('button',{class:'btn-primary',style:'width:auto;padding:10px 20px;font-size:12px;'},'Start');
-    startBtn.onclick = startSessionTimer;
-    timerCard.appendChild(startBtn);
-  } else {
-    const stopBtn = h('button',{class:'btn-primary',style:'width:auto;padding:10px 20px;font-size:12px;background:#E05252;color:#FFF;'},'Fertig');
-    stopBtn.onclick = stopSessionTimer;
-    timerCard.appendChild(stopBtn);
-  }
-  c.appendChild(timerCard);
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">Military Press LH stehend</div>
+                    <div class="exercise-desc">Schwer<br>Noch kein Eintrag</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">4x5–6</div>
+                    <div class="pause-time">Pause: 150s</div>
+                </div>
+            </div>
+            <button class="btn-action">+ Satz eintragen</button>
+        </div>
 
-  // Day Selector Pills
-  const strip = h('div',{class:'week-strip'});
-  WEEK_PLAN.forEach((p, idx) => {
-    const btn = h('div',{class:`week-day ${idx===state.trainingDay?'active':''}`},
-      h('div',{style:'font-size:10px;color:#555;font-weight:700;'},p.day),
-      h('div',{style:'font-size:12px;font-weight:900;margin-top:2px;'},p.label)
-    );
-    btn.onclick = () => setState({ trainingDay: idx });
-    strip.appendChild(btn);
-  });
-  c.appendChild(strip);
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">KH Seitheben</div>
+                    <div class="exercise-desc">Hauptvolumen Schultern<br>Noch kein Eintrag</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">5x12–15</div>
+                    <div class="pause-time">Pause: 60s</div>
+                </div>
+            </div>
+            <button class="btn-action">+ Satz eintragen</button>
+        </div>
 
-  // Plan Details Header
-  const headCard = h('div',{class:'card'});
-  headCard.appendChild(h('div',{class:'flex-between'},
-    h('div',{},
-      h('div',{style:'font-size:16px;font-weight:900;'},plan.label + ' — ' + plan.focus),
-      h('div',{style:'font-size:12px;color:#555;margin-top:2px;'},`Geplante Dauer: ${plan.duration}`)
-    )
-  ));
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">Kabel Seitheben einseitig</div>
+                    <div class="exercise-desc">Burn-Set<br>Noch kein Eintrag</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">3x15</div>
+                    <div class="pause-time">Pause: 45s</div>
+                </div>
+            </div>
+            <button class="btn-action">+ Satz eintragen</button>
+        </div>
 
-  if (plan.warmup && plan.warmup.length > 0) {
-    const warmupBox = h('div',{class:'warmup-box'});
-    warmupBox.appendChild(h('div',{style:'font-size:10px;letter-spacing:2px;color:#C9A84C;font-weight:800;margin-bottom:6px;'},'WARM-UP PROTOKOLL'));
-    plan.warmup.forEach(w => {
-      warmupBox.appendChild(h('div',{style:'font-size:12px;color:#999;padding:2px 0;'},'• ' + w));
-    });
-    headCard.appendChild(warmupBox);
-  }
-  c.appendChild(headCard);
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">Reverse Pec Deck</div>
+                    <div class="exercise-desc">Hintere Schulter<br>Noch kein Eintrag</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">4x12–15</div>
+                    <div class="pause-time">Pause: 60s</div>
+                </div>
+            </div>
+            <button class="btn-action">+ Satz eintragen</button>
+        </div>
 
-  // Exercises List
-  c.appendChild(h('div',{class:'card-label',style:'margin:16px 0 8px;'},'ÜBUNGEN & SÄTZE LOGGEN'));
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">Dips gewichtet</div>
+                    <div class="exercise-desc">+Rucksack<br>Noch kein Eintrag</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">3x8–10</div>
+                    <div class="pause-time">Pause: 120s</div>
+                </div>
+            </div>
+            <button class="btn-action">+ Satz eintragen</button>
+        </div>
 
-  plan.exercises.forEach((ex, exIdx) => {
-    const todaySets = getTodaySessionSets(state.trainingDay, exIdx);
-    const isDone = todaySets.length >= ex.sets;
-    const shouldInc = shouldIncrease(state.trainingDay, exIdx, ex);
-    const last = getLastSession(state.trainingDay, exIdx);
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">Close-Grip Bankdrücken</div>
+                    <div class="exercise-desc">Trizeps<br>Noch kein Eintrag</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">3x10–12</div>
+                    <div class="pause-time">Pause: 90s</div>
+                </div>
+            </div>
+            <button class="btn-action">+ Satz eintragen</button>
+        </div>
 
-    const item = h('div',{class:`exercise-item ${isDone?'done':''}`});
-    const topRow = h('div',{class:'flex-between'});
-    const leftPart = h('div');
-    leftPart.appendChild(h('div',{style:'font-size:14px;font-weight:800;'},ex.name));
-    
-    let subText = `${ex.sets} Sätze · ${ex.reps} Wdh · Pause: ${ex.restSec}s`;
-    if (last && last.sets && last.sets.length > 0) {
-      const lastStr = last.sets.map(s => `${s.w}kg×${s.r}`).join(', ');
-      subText += ` | Letztes Mal: ${lastStr}`;
-    }
-    leftPart.appendChild(h('div',{style:'font-size:11px;color:#555;margin-top:2px;'},subText));
-    
-    if (shouldInc) {
-      leftPart.appendChild(h('span',{class:'prog-badge'},'🔥 Gewicht erhöhen'));
-    }
-    topRow.appendChild(leftPart);
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">EZ-Bar Curl</div>
+                    <div class="exercise-desc">Bizeps<br>Noch kein Eintrag</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">3x10–12</div>
+                    <div class="pause-time">Pause: 60s</div>
+                </div>
+            </div>
+            <button class="btn-action">+ Satz eintragen</button>
+        </div>
 
-    const actionBtn = h('button',{class:'btn-primary',style:'width:auto;padding:8px 14px;font-size:11px;'}, isDone ? 'Erneut' : 'Satz loggen');
-    actionBtn.onclick = () => openModal(exIdx);
-    topRow.appendChild(actionBtn);
-    item.appendChild(topRow);
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">Konzentrations-Curl</div>
+                    <div class="exercise-desc">Peak<br>Noch kein Eintrag</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">2x12/Seite</div>
+                    <div class="pause-time">Pause: 45s</div>
+                </div>
+            </div>
+            <button class="btn-action">+ Satz eintragen</button>
+        </div>
 
-    if (todaySets.length > 0) {
-      const historyRow = h('div',{class:'set-history'});
-      todaySets.forEach((s, sIdx) => {
-        historyRow.appendChild(h('span',{class:'set-badge current'},`S${sIdx+1}: ${s.w}kg×${s.r}`));
-      });
-      item.appendChild(historyRow);
-    }
+        <div class="cardio-box">
+            <span>CARDIO · MITTAGS 12:30</span>
+            <span class="cardio-time">30 Min Fahrrad Zone 2</span>
+        </div>
+    </div>
 
-    c.appendChild(item);
-  });
+    <div id="day-fr" class="day-section">
+        <div class="badge">REST / OFF</div>
+        <div class="day-title">Regeneration</div>
+        <p style="color: #888; font-size: 0.9rem;">Kein Training eingetragen.</p>
+    </div>
 
-  if (plan.cardio) {
-    const cardioBox = h('div',{class:'cardio-box',style:'margin-top:14px;'});
-    cardioBox.appendChild(h('div',{style:'font-size:10px;letter-spacing:2px;color:#C9A84C;font-weight:800;margin-bottom:4px;'},'CARDIO / FINISHER'));
-    cardioBox.appendChild(h('div',{style:'font-size:13px;color:#ccc;'},plan.cardio));
-    c.appendChild(cardioBox);
-  }
+    <div id="day-sa" class="day-section">
+        <div class="badge">PULL+</div>
+        <div class="day-title">Rücken-Breite · V-Taper</div>
 
-  return c;
-}
+        <div class="warmup-box">
+            <div class="warmup-title">WARM-UP · 10 MIN</div>
+            <ul class="warmup-list">
+                <li>· Scapular Push-Ups 2x10</li>
+                <li>· Band Pull-Aparts 2x20</li>
+                <li>· Arm Circles</li>
+            </ul>
+        </div>
 
-function renderNutrition() {
-  const c = h('div',{class:'screen'});
-  c.appendChild(h('div',{class:'screen-header'},
-    h('div',{class:'eyebrow'},'ERNÄHRUNG'),
-    h('div',{class:'title'},'Makros & Mahlzeiten'),
-    h('div',{class:'subtitle'},`Ziel: ${TARGETS.kcal} kcal · ${TARGETS.p}g P`))
-  );
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">Klimmzüge weiter Griff</div>
+                    <div class="exercise-desc">Breite<br>Noch kein Eintrag</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">4xMax</div>
+                    <div class="pause-time">Pause: 120s</div>
+                </div>
+            </div>
+            <button class="btn-action">+ Satz eintragen</button>
+        </div>
 
-  const totals = getTotals();
-  const macroCard = h('div',{class:'card'});
-  macroCard.appendChild(h('div',{class:'card-label'},'TAGESGESAMTWERTE'));
-  macroCard.appendChild(h('div',{class:'macro-rings'},
-    Ring(totals.kcal, TARGETS.kcal, '#C9A84C', 64, 'KCAL'),
-    Ring(totals.p, TARGETS.p, '#4A90D9', 64, 'PROTEIN'),
-    Ring(totals.c, TARGETS.c, '#C9A84C', 64, 'CARBS'),
-    Ring(totals.f, TARGETS.f, '#4CAF7D', 64, 'FETT')
-  ));
-  c.appendChild(macroCard);
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">Latzug Untergriff</div>
+                    <div class="exercise-desc">Lat stretch oben<br>Noch kein Eintrag</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">4x8–10</div>
+                    <div class="pause-time">Pause: 120s</div>
+                </div>
+            </div>
+            <button class="btn-action">+ Satz eintragen</button>
+        </div>
 
-  // Meal selector pills
-  const pillRow = h('div',{class:'pill-row'});
-  MEALS.forEach(m => {
-    const active = state.activeMeal === m.id;
-    const kcal = getMealKcal(m.id);
-    const pill = h('button',{class:`pill ${active?'active':''}`,style:active?'border-color:#C9A84C;color:#C9A84C;':'',onclick:()=>setState({activeMeal:m.id})},
-      `${m.label} (${kcal} kcal)`
-    );
-    pillRow.appendChild(pill);
-  });
-  c.appendChild(pillRow);
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">Einarmiges KH Rudern</div>
+                    <div class="exercise-desc">Schwer<br>Noch kein Eintrag</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">4x10/Seite</div>
+                    <div class="pause-time">Pause: 90s</div>
+                </div>
+            </div>
+            <button class="btn-action">+ Satz eintragen</button>
+        </div>
 
-  // Active Meal Editor Card
-  const activeM = MEALS.find(m => m.id === state.activeMeal);
-  const mealCard = h('div',{class:'card'});
-  mealCard.appendChild(h('div',{class:'flex-between',style:'margin-bottom:12px;'},
-    h('div',{style:'font-weight:900;font-size:15px;'},`${activeM.label} (${activeM.time})`),
-    h('div',{style:'font-size:11px;color:#555;'},activeM.note)
-  ));
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">T-Bar Rudern</div>
+                    <div class="exercise-desc">Dicke<br>Noch kein Eintrag</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">3x8–10</div>
+                    <div class="pause-time">Pause: 120s</div>
+                </div>
+            </div>
+            <button class="btn-action">+ Satz eintragen</button>
+        </div>
 
-  const currentItems = (state.nutrition.meals || {})[state.activeMeal] || {};
-  if (Object.keys(currentItems).length === 0) {
-    mealCard.appendChild(h('div',{style:'font-size:12px;color:#444;margin-bottom:12px;'},'Noch keine Lebensmittel hinzugefügt. Wähle unten aus den Blöcken.'));
-  } else {
-    Object.entries(currentItems).forEach(([key, item]) => {
-      const row = h('div',{class:'selected-meal-item'});
-      row.appendChild(h('div',{},
-        h('div',{style:'font-size:13px;font-weight:700;'},item.name),
-        h('div',{style:'font-size:10px;color:#555;'},`${item.amount} · ${item.kcal} kcal | P: ${item.p}g | C: ${item.c}g | F: ${item.f}g`)
-      ));
-      const remBtn = h('button',{style:'background:none;border:none;color:#E05252;cursor:pointer;font-size:14px;font-weight:900;'},'×');
-      remBtn.onclick = () => {
-        delete state.nutrition.meals[state.activeMeal][key];
-        saveStorage('dajo_nutrition_day', state.nutrition);
-        setState({});
-      };
-      row.appendChild(remBtn);
-      mealCard.appendChild(row);
-    });
-  }
-  c.appendChild(mealCard);
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">Straight-Arm Pulldown</div>
+                    <div class="exercise-desc">Lat isoliert<br>Noch kein Eintrag</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">3x12–15</div>
+                    <div class="pause-time">Pause: 60s</div>
+                </div>
+            </div>
+            <button class="btn-action">+ Satz eintragen</button>
+        </div>
 
-  // Food Blocks Selector
-  c.appendChild(h('div',{class:'card-label',style:'margin:16px 0 8px;'},'LEBENSMITTEL HINZUFÜGEN'));
-  const blockTabs = h('div',{class:'block-tabs'});
-  Object.entries(FOOD_BLOCKS).forEach(([bKey, bVal]) => {
-    const active = state.activeBlock === bKey;
-    const tab = h('button',{class:`block-tab ${active?'active':''}`,style:active?`border-color:${bVal.accent};color:${bVal.accent};`:'',onclick:()=>setState({activeBlock:bKey})},
-      bVal.label
-    );
-    blockTabs.appendChild(tab);
-  });
-  c.appendChild(blockTabs);
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">Face Pulls Kabel</div>
+                    <div class="exercise-desc">Schultergesundheit<br>Noch kein Eintrag</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">4x20</div>
+                    <div class="pause-time">Pause: 45s</div>
+                </div>
+            </div>
+            <button class="btn-action">+ Satz eintragen</button>
+        </div>
 
-  const blockData = FOOD_BLOCKS[state.activeBlock];
-  const blockCard = h('div',{class:'card'});
-  blockData.items.forEach((food, fIdx) => {
-    const fItem = h('div',{class:'food-item'});
-    fItem.appendChild(h('div',{},
-      h('div',{style:'font-size:13px;font-weight:700;'},food.name),
-      h('div',{style:'font-size:11px;color:#555;'},`${food.amount} · ${food.kcal} kcal (P:${food.p} C:${food.c} F:${food.f})`)
-    ));
-    const addBtn = h('button',{style:`background:${blockData.accent};border:none;color:#000;font-weight:900;font-size:11px;padding:6px 10px;border-radius:6px;cursor:pointer;`},'+');
-    addBtn.onclick = () => {
-      if (!state.nutrition.meals[state.activeMeal]) state.nutrition.meals[state.activeMeal] = {};
-      const uniqueKey = `${state.activeBlock}_${fIdx}_${Date.now()}`;
-      state.nutrition.meals[state.activeMeal][uniqueKey] = food;
-      saveStorage('dajo_nutrition_day', state.nutrition);
-      setState({});
-    };
-    fItem.appendChild(addBtn);
-    blockCard.appendChild(fItem);
-  });
-  c.appendChild(blockCard);
+        <div class="cardio-box">
+            <span>CARDIO · MITTAGS 12:30</span>
+            <span class="cardio-time">5x (1 Min Sprint / 2 Min locker) + 10 Min ausfahren</span>
+        </div>
+    </div>
 
-  return c;
-}
+    <div id="day-so" class="day-section">
+        <div class="badge">REST</div>
+        <div class="day-title">Active Recovery · Mobilität</div>
 
-function renderSupps() {
-  const c = h('div',{class:'screen'});
-  c.appendChild(h('div',{class:'screen-header'},
-    h('div',{class:'eyebrow'},'SUPPLEMENTS'),
-    h('div',{class:'title'},'Tägliches Protokoll'),
-    h('div',{class:'subtitle'},'Kreatin, Vitamine, Recovery'))
-  );
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">Spaziergang 30–45 Min</div>
+                    <div class="exercise-desc">Kein Laufen (Leiste)<br>Noch kein Eintrag</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">1x</div>
+                    <div class="pause-time">Pause: 0s</div>
+                </div>
+            </div>
+            <button class="btn-action">+ Satz eintragen</button>
+        </div>
 
-  const card = h('div',{class:'card'});
-  SUPPS.forEach((s, idx) => {
-    const done = (state.suppsDone.items || []).includes(idx);
-    const item = h('div',{class:'supp-item',onclick:()=>{
-      let items = state.suppsDone.items || [];
-      if (done) items = items.filter(i => i !== idx);
-      else items.push(idx);
-      state.suppsDone.items = items;
-      saveStorage('dajo_supps_day', state.suppsDone);
-      setState({});
-    }},
-      h('div',{},
-        h('div',{style:`font-size:14px;font-weight:700;${done?'color:#4CAF7D;text-decoration:line-through;':''}`},s.name),
-        h('div',{style:'font-size:11px;color:#555;'},`${s.dose} · ${s.time}`)
-      ),
-      h('div',{style:`width:22px;height:22px;border-radius:6px;border:1.5px solid ${done?'#4CAF7D':'#333'};background:${done?'#4CAF7D':'#111'};display:flex;align-items:center;justify-content:center;color:#000;font-weight:900;font-size:12px;`},done?'✓':'')
-    );
-    card.appendChild(item);
-  });
-  c.appendChild(card);
-  return c;
-}
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">Hüftbeuger Stretch</div>
+                    <div class="exercise-desc">Mobility<br>Noch kein Eintrag</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">3x60 Sek/Seite</div>
+                    <div class="pause-time">Pause: 0s</div>
+                </div>
+            </div>
+            <button class="btn-action">+ Satz eintragen</button>
+        </div>
 
-function renderProgress() {
-  const c = h('div',{class:'screen'});
-  c.appendChild(h('div',{class:'screen-header'},
-    h('div',{class:'eyebrow'},'PROGRESSION'),
-    h('div',{class:'title'},'Meilensteine & Logs'),
-    h('div',{class:'subtitle'},'Weg zur Sakraya-Form'))
-  );
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">Hamstring Stretch</div>
+                    <div class="exercise-desc">Mobility<br>Noch kein Eintrag</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">3x60 Sek/Seite</div>
+                    <div class="pause-time">Pause: 0s</div>
+                </div>
+            </div>
+            <button class="btn-action">+ Satz eintragen</div>
+        </div>
 
-  // Stats / Log input card
-  const inputCard = h('div',{class:'card'});
-  inputCard.appendChild(h('div',{class:'card-label'},'NEUER EINTRAG'));
-  const twoCol = h('div',{class:'two-col'});
-  
-  const wWrap = h('div');
-  wWrap.appendChild(h('div',{class:'input-label'},'GEWICHT (kg)'));
-  const wInput = h('input',{class:'input-field',type:'number',placeholder:'z.B. 78.5',value:state.weightInput,oninput:(e)=>state.weightInput=e.target.value});
-  wWrap.appendChild(wInput);
-  twoCol.appendChild(wWrap);
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">Lat Stretch</div>
+                    <div class="exercise-desc">Mobility<br>Noch kein Eintrag</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">3x45 Sek/Seite</div>
+                    <div class="pause-time">Pause: 0s</div>
+                </div>
+            </div>
+            <button class="btn-action">+ Satz eintragen</button>
+        </div>
 
-  const kWrap = h('div');
-  kWrap.appendChild(h('div',{class:'input-label'},'KFA (%)'));
-  const kInput = h('input',{class:'input-field',type:'number',placeholder:'z.B. 14.5',value:state.kfaInput,oninput:(e)=>state.kfaInput=e.target.value});
-  kWrap.appendChild(kInput);
-  twoCol.appendChild(kWrap);
-  inputCard.appendChild(twoCol);
+        <div class="exercise-card">
+            <div class="exercise-header">
+                <div>
+                    <div class="exercise-name">Schulter Stretch</div>
+                    <div class="exercise-desc">Mobility<br>Noch kein Eintrag</div>
+                </div>
+                <div class="exercise-meta">
+                    <div class="sets-reps">3x45 Sek/Seite</div>
+                    <div class="pause-time">Pause: 0s</div>
+                </div>
+            </div>
+            <button class="btn-action">+ Satz eintragen</button>
+        </div>
 
-  inputCard.appendChild(h('div',{class:'input-label'},'NOTIZ / REFLEKTION'));
-  const noteInput = h('input',{class:'input-field',type:'text',placeholder:'Wie lief das Training?',style:'margin-bottom:12px;',value:state.noteInput,oninput:(e)=>state.noteInput=e.target.value});
-  inputCard.appendChild(noteInput);
+        <div class="cardio-box">
+            <span>CARDIO · MITTAGS 12:30</span>
+            <span class="cardio-time">Optional: Sauna</span>
+        </div>
+    </div>
 
-  const saveBtn = h('button',{class:`btn-primary ${state.savedFlash?'btn-saved':''}`},state.savedFlash?'GESPEICHERT!':'Eintrag speichern');
-  saveBtn.onclick = () => {
-    if(!state.weightInput && !state.noteInput) return;
-    const entry = { date: today, weight: state.weightInput, kfa: state.kfaInput, note: state.noteInput };
-    state.logs.unshift(entry);
-    saveStorage('dajo_logs', state.logs);
-    state.weightInput = ''; state.kfaInput = ''; state.noteInput = '';
-    state.savedFlash = true;
-    setState({});
-    setTimeout(() => { state.savedFlash = false; setState({}); }, 1200);
-  };
-  inputCard.appendChild(saveBtn);
-  c.appendChild(inputCard);
+    <div class="home-supplements">
+        <h3>Supplemente & Hinweise</h3>
+        <p>Deine täglichen Supplements und Essentials bleiben hier fest im Blick.</p>
+    </div>
 
-  // Milestones Card
-  const mCard = h('div',{class:'card'});
-  mCard.appendChild(h('div',{class:'card-label'},'TRANSFORMATIONS-MEILENSTEINE'));
-  MILESTONES.forEach((m, idx) => {
-    const item = h('div',{class:'milestone-item'});
-    item.appendChild(h('div',{class:'milestone-bar',style:`background:${idx===0?'#C9A84C':'#333'};`}));
-    const textWrap = h('div');
-    textWrap.appendChild(h('div',{class:'flex-between'},
-      h('div',{style:'font-size:14px;font-weight:800;'},m.label),
-      h('span',{class:'tag',style:'background:#222;color:#999;'},m.target)
-    ));
-    textWrap.appendChild(h('div',{style:'font-size:12px;color:#555;margin-top:2px;'},m.desc));
-    item.appendChild(textWrap);
-    mCard.appendChild(item);
-  });
-  c.appendChild(mCard);
+    <script>
+        function switchDay(dayId) {
+            // Alle Sektionen verstecken
+            const sections = document.querySelectorAll('.day-section');
+            sections.forEach(sec => sec.classList.remove('active'));
 
-  // History Logs
-  if (state.logs.length > 0) {
-    const lCard = h('div',{class:'card'});
-    lCard.appendChild(h('div',{class:'card-label'},'VERGANGENE EINTRÄGE'));
-    state.logs.forEach(l => {
-      const entry = h('div',{class:'log-entry'});
-      const left = h('div');
-      left.appendChild(h('div',{style:'font-size:12px;font-weight:700;'},l.date));
-      if(l.weight) left.appendChild(h('div',{style:'font-size:11px;color:#C9A84C;'},`${l.weight} kg${l.kfa?' · '+l.kfa+'% KFA':''}`));
-      if(l.note) left.appendChild(h('div',{style:'font-size:11px;color:#777;margin-top:2px;'},l.note));
-      if(l.text) left.appendChild(h('div',{style:'font-size:11px;color:#999;margin-top:2px;'},l.text));
-      entry.appendChild(left);
-      lCard.appendChild(entry);
-    });
-    c.appendChild(lCard);
-  }
+            // Aktiven Tag einblenden
+            document.getElementById('day-' + dayId).classList.add('active');
 
-  return c;
-}
-
-// ─── NAVIGATION ──────────────────────────────────────────────────────────────
-const TABS = [
-  {id:'home', icon:'⚡', label:'HEUTE', render:renderHome},
-  {id:'training', icon:'🏋️', label:'TRAINING', render:renderTraining},
-  {id:'nutrition', icon:'🥗', label:'ERNÄHRUNG', render:renderNutrition},
-  {id:'supps', icon:'💊', label:'SUPPS', render:renderSupps},
-  {id:'progress', icon:'📈', label:'PROGRESS', render:renderProgress},
-];
-
-function renderNav() {
-  const nav = h('nav',{class:'nav-bar'});
-  TABS.forEach(t => {
-    const active = state.tab === t.id;
-    const btn = h('button',{class:'nav-item',onclick:()=>setState({tab:t.id})},
-      h('div',{class:'nav-icon',style:active?'opacity:1;':'opacity:0.3;'},t.icon),
-      h('div',{class:'nav-text',style:active?'color:#C9A84C;':'color:#555;'},t.label),
-      active ? h('div',{class:'nav-dot'}) : h('div',{style:'width:18px;height:2px;background:transparent;'})
-    );
-    nav.appendChild(btn);
-  });
-  return nav;
-}
-
-// ─── MAIN RENDER LOOP ────────────────────────────────────────────────────────
-function render() {
-  const app = document.getElementById('app');
-  app.innerHTML = '';
-  
-  const currentTabObj = TABS.find(t => t.id === state.tab) || TABS[0];
-  app.appendChild(currentTabObj.render());
-  app.appendChild(renderNav());
-  
-  renderTimer();
-}
-
-render();
-</script>
+            // Buttons aktualisieren
+            const buttons = document.querySelectorAll('.day-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+    </script>
 </body>
 </html>
